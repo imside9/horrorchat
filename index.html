@@ -3,335 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>초대받지 않은 손님</title>
+    <title>기억의 늪</title>
     <style>
-        /* [텍스트힙 & 공포 분위기 스타일링] */
+        /* [스타일 시트: 공포 분위기 & 텍스트힙] */
         :root {
-            --bg-color: #0a0a0a;
-            --chat-bg: #1a1a1a;
-            --text-color: #e0e0e0;
-            --system-color: #ff4444; /* 경고색 */
-            --accent-color: #4a4a4a;
-            --font-main: 'Courier New', Courier, monospace; /* 타자기 느낌 */
+            --bg-color: #050505;
+            --chat-bg: #111;
+            --my-msg-bg: #3a3a3a;
+            --other-msg-bg: #222;
+            --accent: #ff3333;
+            --text-main: #d0d0d0;
+            --font: 'Courier New', monospace;
         }
 
         body {
             background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: var(--font-main);
+            color: var(--text-main);
+            font-family: var(--font);
             margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             height: 100vh;
             overflow: hidden;
         }
 
-        #game-container {
+        #game-frame {
             width: 100%;
-            max-width: 420px; /* 모바일 화면 크기 제한 */
+            max-width: 450px;
             background-color: var(--chat-bg);
             display: flex;
             flex-direction: column;
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
         }
 
-        /* 헤더: 인원수 표시 */
+        /* 헤더 */
         header {
             padding: 15px;
             border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.8);
             z-index: 10;
         }
-
-        #room-title { font-weight: bold; font-size: 1.1rem; }
-        #user-count { font-size: 0.9rem; color: #888; }
-        .glitch-text { animation: glitch 1s infinite; color: red; display: none;}
+        .room-name { font-weight: bold; font-size: 1.1rem; }
+        .count { color: #666; font-size: 0.8rem; }
 
         /* 채팅 영역 */
-        #chat-box {
+        #chat-window {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             scroll-behavior: smooth;
         }
 
-        /* 메시지 스타일 */
-        .message {
+        .msg {
             max-width: 80%;
             padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            line-height: 1.4;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
             opacity: 0;
             animation: fadeIn 0.5s forwards;
             word-break: break-all;
         }
 
-        .msg-left {
-            align-self: flex-start;
-            background-color: #2a2a2a;
-            border-bottom-left-radius: 2px;
-        }
-        .msg-left .sender {
-            font-size: 0.7rem;
-            color: #888;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        .msg-right {
-            align-self: flex-end;
-            background-color: #444;
-            color: #fff;
-            border-bottom-right-radius: 2px;
-        }
-
-        .msg-system {
-            align-self: center;
-            background: none;
-            color: #666;
-            font-size: 0.8rem;
+        .msg-left { align-self: flex-start; background: var(--other-msg-bg); border-top-left-radius: 0; }
+        .msg-right { align-self: flex-end; background: var(--my-msg-bg); color: #fff; border-top-right-radius: 0; }
+        .msg-system { 
+            align-self: center; 
+            background: none; 
+            color: #555; 
+            font-size: 0.75rem; 
+            border: 1px solid #222; 
             text-align: center;
-            border: 1px solid #333;
+            width: 90%;
         }
 
-        .msg-system.warning {
-            color: var(--system-color);
-            border-color: var(--system-color);
-            animation: shake 0.5s;
+        .sender-name { font-size: 0.7rem; color: #777; margin-bottom: 4px; display: block; }
+        
+        /* 이미지 플레이스홀더 */
+        .msg-image {
+            background: #000;
+            border: 1px dashed #444;
+            color: #ff3333;
+            text-align: center;
+            padding: 30px 0;
+            font-size: 0.8rem;
         }
 
         /* 선택지 영역 */
-        #input-area {
-            padding: 20px;
-            background: #111;
+        #choice-area {
+            padding: 15px;
+            background: #0a0a0a;
             border-top: 1px solid #333;
-            min-height: 80px;
+            min-height: 100px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .choice-btn {
+        .btn {
             background: transparent;
-            border: 1px solid #666;
-            color: #fff;
+            border: 1px solid #444;
+            color: #bbb;
             padding: 12px;
             cursor: pointer;
-            font-family: var(--font-main);
-            transition: 0.3s;
+            font-family: var(--font);
             text-align: left;
+            transition: 0.2s;
         }
+        .btn:hover { background: #222; border-color: #888; color: #fff; }
 
-        .choice-btn:hover { background: #333; border-color: #fff; }
-        .choice-btn:active { transform: scale(0.98); }
-
-        /* 애니메이션 정의 */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes glitch { 
-            0% { transform: translate(0); } 
-            20% { transform: translate(-2px, 2px); } 
-            40% { transform: translate(-2px, -2px); } 
-            60% { transform: translate(2px, 2px); } 
-            80% { transform: translate(2px, -2px); } 
-            100% { transform: translate(0); } 
-        }
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* 엔딩 시 화면 효과 */
-        .horror-mode {
-            animation: shake 0.1s infinite;
-        }
-        .blood-bg {
-            background-color: #300000 !important;
+        /* 공포 효과 */
+        .glitch-mode { animation: shake 0.2s infinite; }
+        .red-theme { background-color: #200 !important; }
+        
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
 
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <header>
-            <span id="room-title">동창회 (4)</span>
-            <span id="user-count">4명 참여 중</span>
-        </header>
+<div id="game-frame">
+    <header>
+        <span class="room-name">초대받지 않은 방</span>
+        <span class="count" id="user-count">4명</span>
+    </header>
+    
+    <div id="chat-window"></div>
+    <div id="choice-area"></div>
+</div>
 
-        <div id="chat-box">
-            </div>
-
-        <div id="input-area">
-            </div>
-    </div>
-
-    <script>
-        // [게임 데이터 및 로직]
+<script>
+    /**
+     * [기획자님을 위한 시나리오 설정 영역]
+     * karma: +는 진실/인정, -는 거짓/부인
+     * next: 다음에 이어질 장면 ID
+     */
+    const scenario = {
+        "start": {
+            text: "오랜만이다. 다들 잘 지냈어?",
+            speaker: "민수",
+            choices: [
+                { text: "민수야? 너 정말 민수야?", next: "scene_1_good", karma: 1 },
+                { text: "누구세요? 민수는 죽었잖아.", next: "scene_1_bad", karma: -1 }
+            ]
+        },
+        "scene_1_good": {
+            text: "나 잊어버린 줄 알았는데... 감동이네.",
+            speaker: "민수",
+            next: "scene_2"
+        },
+        "scene_1_bad": {
+            text: "죽어? 내가 왜 죽어? 난 여기 계속 있었는데.",
+            speaker: "민수",
+            next: "scene_2"
+        },
+        "scene_2": {
+            text: "누가 장난치는 거야! 다 나가!",
+            speaker: "익명 A",
+            next: "scene_3"
+        },
+        "scene_3": {
+            text: "나가는 문은 없어. 내가 너희들한테 줄 게 있거든.",
+            speaker: "민수",
+            next: "scene_4_photo"
+        },
+        "scene_4_photo": {
+            type: "image",
+            text: "[이미지 전송됨: 유리가 깨진 낡은 손목시계]",
+            speaker: "민수",
+            next: "scene_4_q"
+        },
+        "scene_4_q": {
+            text: "이 시계 기억나는 사람?",
+            speaker: "민수",
+            choices: [
+                { text: "(모르는 척) 이게 뭔데?", next: "scene_5_lie", karma: -2 },
+                { text: "(움찔) ...이걸 네가 어떻게 가지고 있어?", next: "scene_5_truth", karma: 2 }
+            ]
+        },
+        "scene_5_lie": {
+            text: "모르는 척하지 마. 네가 선물해 줬던 거잖아.",
+            speaker: "민수",
+            next: "scene_6"
+        },
+        "scene_5_truth": {
+            text: "그래, 역시 넌 기억하는구나. 내 마지막 시간.",
+            speaker: "민수",
+            next: "scene_6"
+        },
+        "scene_6": {
+            text: "야, A가 말이 없어. 연결이 끊겼대...",
+            speaker: "익명 B",
+            next: "scene_7"
+        },
+        "scene_7": {
+            text: "거짓말쟁이는 먼저 보냈어. 이제 너 차례야. 4시 44분, 낚시터.",
+            speaker: "민수",
+            choices: [
+                { text: "난 낚시터 안 갔어! 기억 안 나!", next: "calc_ending", karma: -5 },
+                { text: "...그때는 정말 사고였어. 미안해.", next: "calc_ending", karma: 5 }
+            ]
+        },
         
-        const chatBox = document.getElementById('chat-box');
-        const inputArea = document.getElementById('input-area');
-        const userCount = document.getElementById('user-count');
-        const gameContainer = document.getElementById('game-container');
+        // [엔딩 분기점 로직은 아래 JS에서 처리]
+        "ending_bad": {
+            text: "끝까지 거짓말이네. 넌 평생 여기서 나랑 놀자.",
+            speaker: "민수(System)",
+            type: "ending",
+            effect: "horror"
+        },
+        "ending_normal": {
+            text: "살인자. 살인자. 살인자. 살인자.",
+            speaker: "99명",
+            type: "ending",
+            effect: "glitch"
+        },
+        "ending_true": {
+            text: "그래, 그 말을 듣고 싶었어. 경찰서 위치 보낼게. 죗값 치르고 와.",
+            speaker: "민수",
+            type: "ending",
+            effect: "clean"
+        }
+    };
 
-        // 효과음 (실제 사운드 파일 대신 진동/화면 효과로 대체)
-        const vibrate = () => { if(navigator.vibrate) navigator.vibrate(50); };
+    // [게임 상태 변수]
+    let currentKarma = 0; // 업보 수치
+    const chatWindow = document.getElementById('chat-window');
+    const choiceArea = document.getElementById('choice-area');
+    const headerCount = document.getElementById('user-count');
 
-        // 딜레이 함수
-        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    // [기능 함수]
+    function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-        // 메시지 추가 함수
-        async function addMessage(text, sender, type = 'left', speed = 0) {
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('message');
-            
-            if (type === 'system') {
-                msgDiv.classList.add('msg-system');
-                if(sender === 'warning') msgDiv.classList.add('warning');
-                msgDiv.innerHTML = text;
-            } else if (type === 'right') {
-                msgDiv.classList.add('msg-right');
-                msgDiv.innerText = text;
-            } else {
-                msgDiv.classList.add('msg-left');
-                // 발신자 이름 표시
-                msgDiv.innerHTML = `<span class="sender">${sender}</span>${text}`;
-            }
-
-            chatBox.appendChild(msgDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-            
-            if(speed > 0) await wait(speed);
+    async function addMessage(text, speaker, type='chat') {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('msg');
+        
+        if (type === 'image') {
+            msgDiv.classList.add('msg-image');
+            msgDiv.innerText = text; // 실제 이미지 태그로 교체 가능
+        } else if (speaker === '나') {
+            msgDiv.classList.add('msg-right');
+            msgDiv.innerText = text;
+        } else if (speaker === 'System' || speaker.includes('System')) {
+            msgDiv.classList.add('msg-system');
+            msgDiv.innerHTML = text;
+        } else {
+            msgDiv.classList.add('msg-left');
+            msgDiv.innerHTML = `<span class="sender-name">${speaker}</span>${text}`;
         }
 
-        // 선택지 표시 함수
-        function showChoices(choices) {
-            inputArea.innerHTML = ''; // 기존 버튼 제거
-            choices.forEach(choice => {
+        chatWindow.appendChild(msgDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        await wait(800); // 타이핑 연출 딜레이
+    }
+
+    async function playScene(sceneId) {
+        // 엔딩 계산 로직
+        if (sceneId === 'calc_ending') {
+            await wait(1000);
+            if (currentKarma >= 5) playScene('ending_true');
+            else if (currentKarma <= -5) playScene('ending_bad');
+            else playScene('ending_normal');
+            return;
+        }
+
+        const scene = scenario[sceneId];
+        if (!scene) return;
+
+        // 메시지 출력
+        await addMessage(scene.text, scene.speaker, scene.type);
+
+        // 엔딩별 특수 효과
+        if (scene.type === 'ending') {
+            if(scene.effect === 'glitch') {
+                document.getElementById('game-frame').classList.add('glitch-mode');
+                headerCount.innerText = "99명";
+                headerCount.style.color = "red";
+            } else if (scene.effect === 'horror') {
+                document.body.classList.add('red-theme');
+                alert("당신의 스마트폰이 해킹당했습니다.");
+            } else {
+                alert("민수님이 퇴장하셨습니다.");
+            }
+            choiceArea.innerHTML = "<div style='color:#666; text-align:center;'>게임 종료 (새로고침하여 다시 시작)</div>";
+            return;
+        }
+
+        // 다음 장면 자동 이동 또는 선택지 표시
+        if (scene.choices) {
+            choiceArea.innerHTML = '';
+            scene.choices.forEach(choice => {
                 const btn = document.createElement('button');
-                btn.classList.add('choice-btn');
+                btn.className = 'btn';
                 btn.innerText = choice.text;
                 btn.onclick = () => {
-                    inputArea.innerHTML = ''; // 선택 후 버튼 제거
-                    addMessage(choice.text, '나', 'right'); // 내 메시지로 표시
-                    handleScenario(choice.next); // 다음 시나리오 진행
+                    // 선택지 클릭 처리
+                    choiceArea.innerHTML = '';
+                    addMessage(choice.text, '나');
+                    if(choice.karma) currentKarma += choice.karma; // 카르마 업데이트
+                    playScene(choice.next);
                 };
-                inputArea.appendChild(btn);
+                choiceArea.appendChild(btn);
             });
+        } else if (scene.next) {
+            playScene(scene.next);
         }
+    }
 
-        // [시나리오 스크립트]
-        async function handleScenario(sceneId) {
-            
-            // 시나리오별 로직
-            if (sceneId === 'start') {
-                await wait(1000);
-                await addMessage('알 수 없는 사용자가 초대했습니다.', 'system', 'system');
-                await wait(1500);
-                await addMessage('야, 다들 잘 지냈냐? 진짜 오랜만이다.', '민수', 'left');
-                await wait(2000);
-                await addMessage('뭐야? 누구야 너? 미친 거 아냐?', '익명 A', 'left');
-                await wait(2000);
-                await addMessage('...민수야? 너 박민수 맞아?', '익명 B', 'left');
-                await wait(1000);
-                
-                showChoices([
-                    { text: "민수야? 너 정말 민수야? 어디 있었어?", next: "scene_doubt_0" },
-                    { text: "이거 장난이지? 누구야 너?", next: "scene_doubt_1" }
-                ]);
-            }
+    // 게임 시작
+    window.onload = () => {
+        setTimeout(() => playScene('start'), 1000);
+    };
 
-            else if (sceneId === 'scene_doubt_0') {
-                // 의심 안 함 -> 가스라이팅 루트
-                await wait(1000);
-                await addMessage('나? 나 계속 여기 있었는데. 너희들이 나 두고 간 그곳에.', '민수', 'left');
-                await wait(2000);
-                await addMessage('무슨 소리야.. 우린 널 두고 간 적 없어.', '익명 B', 'left');
-                await wait(2000);
-                await addMessage('아니야, 너희는 날 두고 갔어. 특히 너.', '민수', 'left');
-                
-                showChoices([
-                    { text: "내가? 난 그때 아파서 못 갔잖아.", next: "ending_trap" },
-                    { text: "거짓말 마. 우리 그때 다 같이 있었어.", next: "ending_horror" }
-                ]);
-            }
-
-            else if (sceneId === 'scene_doubt_1') {
-                // 의심 함 -> 공포 루트
-                await wait(1000);
-                await addMessage('장난? ㅎㅎ 내 목소리 잊어버렸어?', '민수', 'left');
-                await wait(1500);
-                // 기괴한 텍스트 연출
-                await addMessage('지ㄱ금 네 뒤ㅇ에 있잖아.', '민수', 'left'); 
-                vibrate();
-                
-                showChoices([
-                    { text: "경찰에 신고한다.", next: "ending_horror" },
-                    { text: "(채팅방 나가기)", next: "ending_horror" }
-                ]);
-            }
-
-            else if (sceneId === 'ending_trap') {
-                 // 가스라이팅 엔딩
-                 await wait(1000);
-                 await addMessage('그래.. 기억났어? 문 열어봐.', '민수', 'left');
-                 await wait(2000);
-                 alert("누군가 현관문을 두드립니다.");
-                 location.reload(); // 게임 리셋
-            }
-
-            else if (sceneId === 'ending_horror') {
-                // 99명 엔딩 (클라이맥스)
-                await wait(1000);
-                await addMessage('찾았다.', '민수', 'left');
-                vibrate();
-                await wait(500);
-                
-                // 시스템 메시지: 인원수 증가
-                userCount.innerText = "99명 참여 중";
-                userCount.style.color = "red";
-                userCount.classList.add("glitch-text");
-
-                await addMessage('새로운 사용자 95명이 입장했습니다.', 'warning', 'system');
-                gameContainer.classList.add('horror-mode'); // 화면 흔들림
-                
-                // 메시지 폭주 루프
-                let count = 0;
-                const horrorLoop = setInterval(() => {
-                    const senders = ['민수', '익명', '알수없음', '그것'];
-                    const randomSender = senders[Math.floor(Math.random() * senders.length)];
-                    
-                    addMessage('찾았다. 찾았다. 찾았다.', randomSender, 'left');
-                    count++;
-                    
-                    if(count > 10) {
-                         document.body.classList.add('blood-bg'); // 배경 빨갛게
-                    }
-
-                    if(count > 30) {
-                        clearInterval(horrorLoop);
-                        addMessage('현관문 비밀번호, 3년 전이랑 똑같네?', '민수', 'left');
-                        alert("GAME OVER: 당신은 발각되었습니다.");
-                    }
-                }, 200); // 0.2초마다 메시지 전송
-            }
-        }
-
-        // 게임 시작
-        window.onload = () => handleScenario('start');
-
-    </script>
+</script>
 </body>
 </html>
