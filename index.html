@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>기억의 늪</title>
+    <title>기억의 늪: 리부트</title>
     <style>
-        /* [스타일 시트: 공포 분위기 & 텍스트힙] */
         :root {
-            --bg-color: #050505;
-            --chat-bg: #111;
-            --my-msg-bg: #3a3a3a;
+            --bg-color: #000;
+            --chat-bg: #121212;
+            --my-msg-bg: #2d5a27; /* 카톡 느낌 살짝 */
             --other-msg-bg: #222;
-            --accent: #ff3333;
-            --text-main: #d0d0d0;
-            --font: 'Courier New', monospace;
+            --system-msg-bg: #1a1a1a;
+            --accent: #d32f2f;
+            --text-main: #e0e0e0;
+            --font: 'Noto Sans KR', sans-serif; /* 한글 폰트 적용 */
         }
 
         body {
@@ -34,7 +34,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.1);
         }
 
         /* 헤더 */
@@ -44,11 +44,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0,0,0,0.8);
+            background: rgba(20, 20, 20, 0.95);
             z-index: 10;
         }
-        .room-name { font-weight: bold; font-size: 1.1rem; }
-        .count { color: #666; font-size: 0.8rem; }
+        .room-title { font-weight: bold; font-size: 1rem; }
+        .red-dot { width: 8px; height: 8px; background: red; border-radius: 50%; display: inline-block; animation: blink 2s infinite; }
 
         /* 채팅 영역 */
         #chat-window {
@@ -57,87 +57,100 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
             scroll-behavior: smooth;
+            padding-bottom: 40px;
         }
 
         .msg {
-            max-width: 80%;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            opacity: 0;
-            animation: fadeIn 0.5s forwards;
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
             word-break: break-all;
+            position: relative;
+            opacity: 0;
+            animation: slideUp 0.4s forwards;
         }
 
-        .msg-left { align-self: flex-start; background: var(--other-msg-bg); border-top-left-radius: 0; }
-        .msg-right { align-self: flex-end; background: var(--my-msg-bg); color: #fff; border-top-right-radius: 0; }
+        .msg-left { align-self: flex-start; background: var(--other-msg-bg); border-top-left-radius: 2px; }
+        .msg-right { align-self: flex-end; background: var(--my-msg-bg); color: #fff; border-top-right-radius: 2px; }
         .msg-system { 
             align-self: center; 
-            background: none; 
-            color: #555; 
-            font-size: 0.75rem; 
-            border: 1px solid #222; 
+            background: rgba(255,255,255,0.05); 
+            color: #888; 
+            font-size: 0.8rem; 
             text-align: center;
-            width: 90%;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 10px 0;
+            width: fit-content;
         }
 
-        .sender-name { font-size: 0.7rem; color: #777; margin-bottom: 4px; display: block; }
+        .sender { font-size: 0.75rem; color: #888; margin-bottom: 4px; display: block; }
         
-        /* 이미지 플레이스홀더 */
-        .msg-image {
-            background: #000;
-            border: 1px dashed #444;
-            color: #ff3333;
-            text-align: center;
-            padding: 30px 0;
-            font-size: 0.8rem;
-        }
-
-        /* 선택지 영역 */
-        #choice-area {
-            padding: 15px;
-            background: #0a0a0a;
-            border-top: 1px solid #333;
-            min-height: 100px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .btn {
-            background: transparent;
+        /* 증거 자료 스타일 */
+        .evidence-box {
+            background: #1a1a1a;
             border: 1px solid #444;
-            color: #bbb;
-            padding: 12px;
-            cursor: pointer;
-            font-family: var(--font);
-            text-align: left;
-            transition: 0.2s;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 5px;
         }
-        .btn:hover { background: #222; border-color: #888; color: #fff; }
+        .evidence-title { color: var(--accent); font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; display: block;}
+        .evidence-img { width: 100%; height: 120px; background: #000; display: flex; align-items: center; justify-content: center; color: #555; font-size: 0.8rem; margin-top: 10px; border: 1px dashed #333;}
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* 공포 효과 */
-        .glitch-mode { animation: shake 0.2s infinite; }
-        .red-theme { background-color: #200 !important; }
-        
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        /* 입력 영역 */
+        #interaction-area {
+            background: #111;
+            border-top: 1px solid #333;
+            padding: 15px;
+            min-height: 80px;
         }
+
+        /* 선택지 버튼 */
+        .choices-container { display: flex; flex-direction: column; gap: 8px; }
+        .btn-choice {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #ddd;
+            padding: 14px;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+        .btn-choice:hover { background: #333; border-color: #666; }
+
+        /* 텍스트 입력창 */
+        .input-container { display: flex; gap: 10px; }
+        #answer-input {
+            flex: 1;
+            background: #222;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        #submit-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 0 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        /* 공포 효과 클래스 */
+        .screen-shock { animation: shake 0.5s; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
 
     </style>
 </head>
@@ -145,190 +158,269 @@
 
 <div id="game-frame">
     <header>
-        <span class="room-name">초대받지 않은 방</span>
-        <span class="count" id="user-count">4명</span>
+        <span class="room-title">📁 사건번호 24-1028 (미제)</span>
+        <span class="red-dot"></span>
     </header>
     
-    <div id="chat-window"></div>
-    <div id="choice-area"></div>
+    <div id="chat-window">
+        </div>
+
+    <div id="interaction-area">
+        </div>
 </div>
 
 <script>
     /**
-     * [기획자님을 위한 시나리오 설정 영역]
-     * karma: +는 진실/인정, -는 거짓/부인
-     * next: 다음에 이어질 장면 ID
+     * [시나리오 데이터]
+     * type: 'chat' (일반대화), 'evidence' (증거제시), 'choice' (선택지), 'input' (주관식)
+     * answer: 주관식 정답 (input 타입일 때)
+     * failScene: 틀렸을 때 이동할 곳
      */
     const scenario = {
         "start": {
-            text: "오랜만이다. 다들 잘 지냈어?",
+            type: "system",
+            text: "복구된 대화방에 접속했습니다. (데이터 손실률 12%)",
+            next: "intro_1"
+        },
+        "intro_1": {
+            speaker: "???",
+            text: "아직도 안 나갔네? 끈질기다 너희들.",
+            next: "intro_2"
+        },
+        "intro_2": {
+            speaker: "나(Protagonist)",
+            text: "넌 누구야? 민수 핸드폰 해킹한 거지?",
+            next: "intro_3"
+        },
+        "intro_3": {
+            speaker: "???",
+            text: "해킹? 내가 내 폰을 쓰는데 왜 해킹이야.",
+            next: "evidence_1"
+        },
+        "evidence_1": {
+            type: "evidence",
             speaker: "민수",
-            choices: [
-                { text: "민수야? 너 정말 민수야?", next: "scene_1_good", karma: 1 },
-                { text: "누구세요? 민수는 죽었잖아.", next: "scene_1_bad", karma: -1 }
+            title: "[사진 전송됨]",
+            desc: "비 오는 날 낚시터, 흙탕물에 반쯤 잠긴 운동화 한 짝.",
+            text: "이 신발, 그날 네가 신고 왔던 거잖아. 나이키 에어포스.",
+            next: "choice_1"
+        },
+        "choice_1": {
+            type: "choice",
+            text: "민수가 나를 특정해서 압박해오기 시작했다.",
+            options: [
+                { label: "무슨 소리야? 난 그날 낚시터 안 갔어.", next: "deny_1" },
+                { label: "신발은 흔한 거잖아. 억지 부리지 마.", next: "deny_2" }
             ]
         },
-        "scene_1_good": {
-            text: "나 잊어버린 줄 알았는데... 감동이네.",
+        "deny_1": {
             speaker: "민수",
-            next: "scene_2"
+            text: "거짓말. A랑 B는 이미 다 불었어. 네가 낚시터로 나 부른 거라고.",
+            next: "chapter_2"
         },
-        "scene_1_bad": {
-            text: "죽어? 내가 왜 죽어? 난 여기 계속 있었는데.",
+        "deny_2": {
             speaker: "민수",
-            next: "scene_2"
+            text: "흔하다고? 오른쪽 뒤꿈치에 껌 붙어있는 것도 흔한가?",
+            next: "chapter_2"
         },
-        "scene_2": {
-            text: "누가 장난치는 거야! 다 나가!",
-            speaker: "익명 A",
-            next: "scene_3"
+
+        // 챕터 2: 알리바이 깨기 (주관식 퀴즈 도입)
+        "chapter_2": {
+            type: "system",
+            text: "[경고] 심박수가 증가하고 있습니다.",
+            next: "quiz_1_intro"
         },
-        "scene_3": {
-            text: "나가는 문은 없어. 내가 너희들한테 줄 게 있거든.",
+        "quiz_1_intro": {
             speaker: "민수",
-            next: "scene_4_photo"
+            text: "좋아, 기회를 줄게. 네 기억이 맞는지 확인해 보자.\n그날 우리가 만났던 낚시터 방갈로 호수, 기억해?",
+            next: "quiz_1"
         },
-        "scene_4_photo": {
-            type: "image",
-            text: "[이미지 전송됨: 유리가 깨진 낡은 손목시계]",
-            speaker: "민수",
-            next: "scene_4_q"
+        "quiz_1": {
+            type: "input",
+            speaker: "System",
+            text: "방갈로 호수를 입력하세요. (힌트: 죽을 사(4)자가 겹치는 불길한 숫자)",
+            correctAnswer: "444",
+            next: "quiz_1_correct",
+            failNext: "quiz_1_fail"
         },
-        "scene_4_q": {
-            text: "이 시계 기억나는 사람?",
+        "quiz_1_fail": {
             speaker: "민수",
-            choices: [
-                { text: "(모르는 척) 이게 뭔데?", next: "scene_5_lie", karma: -2 },
-                { text: "(움찔) ...이걸 네가 어떻게 가지고 있어?", next: "scene_5_truth", karma: 2 }
+            text: "봐, 기억 못 하잖아. 네가 거기로 불렀으면서 번호를 까먹어?",
+            next: "game_over_1" // 오답 시 배드엔딩 직행 가능
+        },
+        "quiz_1_correct": {
+            speaker: "민수",
+            text: "444호. 정확히 기억하네. 거기서 네가 날 밀었잖아.",
+            next: "climax_1"
+        },
+
+        // 클라이맥스: 기억의 왜곡
+        "climax_1": {
+            speaker: "나",
+            text: "아니야! 난 널 구하려고 했어! 손을 뻗었다고!",
+            next: "climax_2"
+        },
+        "climax_2": {
+            speaker: "민수",
+            text: "손을 뻗었다고? ...이 영상을 보고도 그런 말이 나올까?",
+            next: "evidence_video"
+        },
+        "evidence_video": {
+            type: "evidence",
+            speaker: "System",
+            title: "[동영상 재생]",
+            desc: "흔들리는 화면. 누군가의 손이 민수의 등을 강하게 떠미는 장면이 찍혀있다.",
+            text: "영상 속의 손목에는 내가 차고 있는 시계가 선명하게 보인다.",
+            next: "final_choice"
+        },
+        "final_choice": {
+            type: "choice",
+            text: "손이 떨린다. 더 이상 부정할 수 없다.",
+            options: [
+                { label: "...미안해. 내가 그랬어.", next: "ending_true" },
+                { label: "이건 조작이야!!! 으아아악!!", next: "ending_madness" }
             ]
         },
-        "scene_5_lie": {
-            text: "모르는 척하지 마. 네가 선물해 줬던 거잖아.",
-            speaker: "민수",
-            next: "scene_6"
-        },
-        "scene_5_truth": {
-            text: "그래, 역시 넌 기억하는구나. 내 마지막 시간.",
-            speaker: "민수",
-            next: "scene_6"
-        },
-        "scene_6": {
-            text: "야, A가 말이 없어. 연결이 끊겼대...",
-            speaker: "익명 B",
-            next: "scene_7"
-        },
-        "scene_7": {
-            text: "거짓말쟁이는 먼저 보냈어. 이제 너 차례야. 4시 44분, 낚시터.",
-            speaker: "민수",
-            choices: [
-                { text: "난 낚시터 안 갔어! 기억 안 나!", next: "calc_ending", karma: -5 },
-                { text: "...그때는 정말 사고였어. 미안해.", next: "calc_ending", karma: 5 }
-            ]
-        },
-        
-        // [엔딩 분기점 로직은 아래 JS에서 처리]
-        "ending_bad": {
-            text: "끝까지 거짓말이네. 넌 평생 여기서 나랑 놀자.",
-            speaker: "민수(System)",
-            type: "ending",
-            effect: "horror"
-        },
-        "ending_normal": {
-            text: "살인자. 살인자. 살인자. 살인자.",
-            speaker: "99명",
-            type: "ending",
-            effect: "glitch"
+
+        // 엔딩
+        "game_over_1": {
+            type: "system",
+            text: "당신은 기억의 압박을 이기지 못하고 대화방을 나갔습니다.\n[BAD ENDING: 도망자]",
+            isEnding: true
         },
         "ending_true": {
-            text: "그래, 그 말을 듣고 싶었어. 경찰서 위치 보낼게. 죗값 치르고 와.",
             speaker: "민수",
-            type: "ending",
-            effect: "clean"
+            text: "오래 걸렸네. 자수해. 기다릴게.",
+            next: "ending_true_sys"
+        },
+        "ending_true_sys": {
+            type: "system",
+            text: "[TRUE ENDING: 참회]\n경찰서 위치가 전송되었습니다.",
+            isEnding: true
+        },
+        "ending_madness": {
+            type: "system",
+            text: "[HIDDEN ENDING: 망상]\n당신은 영원히 444호의 기억 속에 갇혔습니다.",
+            isEnding: true
         }
     };
 
-    // [게임 상태 변수]
-    let currentKarma = 0; // 업보 수치
+    // [게임 엔진]
     const chatWindow = document.getElementById('chat-window');
-    const choiceArea = document.getElementById('choice-area');
-    const headerCount = document.getElementById('user-count');
+    const interactionArea = document.getElementById('interaction-area');
+    const gameFrame = document.getElementById('game-frame');
 
-    // [기능 함수]
     function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    async function addMessage(text, speaker, type='chat') {
+    async function addMessage(scene) {
         const msgDiv = document.createElement('div');
         msgDiv.classList.add('msg');
-        
-        if (type === 'image') {
-            msgDiv.classList.add('msg-image');
-            msgDiv.innerText = text; // 실제 이미지 태그로 교체 가능
-        } else if (speaker === '나') {
-            msgDiv.classList.add('msg-right');
-            msgDiv.innerText = text;
-        } else if (speaker === 'System' || speaker.includes('System')) {
+
+        if (scene.type === 'system') {
             msgDiv.classList.add('msg-system');
-            msgDiv.innerHTML = text;
+            msgDiv.innerText = scene.text;
+        } else if (scene.type === 'evidence') {
+            msgDiv.classList.add('msg-left');
+            msgDiv.innerHTML = `
+                <span class="sender">${scene.speaker}</span>
+                <div class="evidence-box">
+                    <span class="evidence-title">${scene.title}</span>
+                    <div style="font-size:0.9rem; color:#ccc;">${scene.text}</div>
+                    <div class="evidence-img">${scene.desc}</div>
+                </div>`;
+        } else if (scene.speaker === '나') {
+            msgDiv.classList.add('msg-right');
+            msgDiv.innerText = scene.text;
         } else {
             msgDiv.classList.add('msg-left');
-            msgDiv.innerHTML = `<span class="sender-name">${speaker}</span>${text}`;
+            msgDiv.innerHTML = `<span class="sender">${scene.speaker}</span>${scene.text}`;
         }
 
         chatWindow.appendChild(msgDiv);
         chatWindow.scrollTop = chatWindow.scrollHeight;
-        await wait(800); // 타이핑 연출 딜레이
+        await wait(600);
     }
 
     async function playScene(sceneId) {
-        // 엔딩 계산 로직
-        if (sceneId === 'calc_ending') {
-            await wait(1000);
-            if (currentKarma >= 5) playScene('ending_true');
-            else if (currentKarma <= -5) playScene('ending_bad');
-            else playScene('ending_normal');
-            return;
-        }
-
         const scene = scenario[sceneId];
         if (!scene) return;
 
-        // 메시지 출력
-        await addMessage(scene.text, scene.speaker, scene.type);
+        // 메시지 출력 (choice/input 단계에서도 질문은 말풍선으로 나옴)
+        if (scene.text && !scene.options && scene.type !== 'choice') { 
+            await addMessage(scene);
+        }
 
-        // 엔딩별 특수 효과
-        if (scene.type === 'ending') {
-            if(scene.effect === 'glitch') {
-                document.getElementById('game-frame').classList.add('glitch-mode');
-                headerCount.innerText = "99명";
-                headerCount.style.color = "red";
-            } else if (scene.effect === 'horror') {
-                document.body.classList.add('red-theme');
-                alert("당신의 스마트폰이 해킹당했습니다.");
-            } else {
-                alert("민수님이 퇴장하셨습니다.");
-            }
-            choiceArea.innerHTML = "<div style='color:#666; text-align:center;'>게임 종료 (새로고침하여 다시 시작)</div>";
+        // 엔딩 처리
+        if (scene.isEnding) {
+            interactionArea.innerHTML = "<div style='color:#666; text-align:center; padding:10px;'>게임 종료 (새로고침)</div>";
             return;
         }
 
-        // 다음 장면 자동 이동 또는 선택지 표시
-        if (scene.choices) {
-            choiceArea.innerHTML = '';
-            scene.choices.forEach(choice => {
+        // 입력 UI 생성
+        interactionArea.innerHTML = ''; // 초기화
+
+        if (scene.type === 'choice') {
+            // 설명 텍스트 먼저 출력
+            if(scene.text) await addMessage({speaker: 'System', text: scene.text, type: 'system'});
+            
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'choices-container';
+            
+            scene.options.forEach(opt => {
                 const btn = document.createElement('button');
-                btn.className = 'btn';
-                btn.innerText = choice.text;
+                btn.className = 'btn-choice';
+                btn.innerText = opt.label;
                 btn.onclick = () => {
-                    // 선택지 클릭 처리
-                    choiceArea.innerHTML = '';
-                    addMessage(choice.text, '나');
-                    if(choice.karma) currentKarma += choice.karma; // 카르마 업데이트
-                    playScene(choice.next);
+                    addMessage({speaker: '나', text: opt.label, type: 'chat'});
+                    playScene(opt.next);
                 };
-                choiceArea.appendChild(btn);
+                btnContainer.appendChild(btn);
             });
+            interactionArea.appendChild(btnContainer);
+
+        } else if (scene.type === 'input') {
+            // 질문 텍스트 출력
+            await addMessage(scene);
+
+            const inputContainer = document.createElement('div');
+            inputContainer.className = 'input-container';
+            inputContainer.innerHTML = `
+                <input type="text" id="answer-input" placeholder="답변을 입력하세요..." autocomplete="off">
+                <button id="submit-btn">전송</button>
+            `;
+            interactionArea.appendChild(inputContainer);
+
+            const input = inputContainer.querySelector('#answer-input');
+            const btn = inputContainer.querySelector('#submit-btn');
+
+            const checkAnswer = () => {
+                const val = input.value.trim();
+                if (!val) return;
+                
+                addMessage({speaker: '나', text: val, type: 'chat'}); // 내 답변 말풍선 추가
+                
+                if (val.includes(scene.correctAnswer)) { // 정답 포함 여부 확인
+                    playScene(scene.next);
+                } else {
+                    // 오답 연출
+                    gameFrame.classList.add('screen-shock');
+                    setTimeout(()=>gameFrame.classList.remove('screen-shock'), 500);
+                    
+                    // 오답 시 바로 게임오버로 갈지, 다시 기회를 줄지 시나리오에 따라 다름
+                    if(scene.failNext) playScene(scene.failNext);
+                    else {
+                         addMessage({speaker: 'System', text: "틀렸습니다. 다시 생각해 보세요.", type: 'system'});
+                         input.value = '';
+                    }
+                }
+            };
+
+            btn.onclick = checkAnswer;
+            input.onkeypress = (e) => { if(e.key === 'Enter') checkAnswer(); };
+
         } else if (scene.next) {
-            playScene(scene.next);
+            // 일반 대화면 자동으로 다음 장면
+            setTimeout(() => playScene(scene.next), 800);
         }
     }
 
